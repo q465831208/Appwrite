@@ -3,7 +3,7 @@
 const YT_WARPOUT = process.env.YT_WARPOUT || false;   // 设置为true时强制使用warp出站访问youtube,false时自动检测是否设置warp出站
 const FILE_PATH = process.env.FILE_PATH || './.npm';  // sub.txt订阅文件路径
 const SUB_PATH = process.env.SUB_PATH || 'sub';       // 订阅sub路径，默认为sub,例如：https://google.com/sub
-const UUID = process.env.UUID || '0a6568ff-ea3c-4271-9020-450560e10d65';  // UUID,如果开启了哪吒v1,也会使用此uuid
+const UUID = process.env.UUID || '55ca32f8-3ea6-47ac-b8db-d027f3224bb0';  // UUID,如果开启了哪吒v1,也会使用此uuid
 const NEZHA_SERVER = process.env.NEZHA_SERVER || '';         // 哪吒面板地址,v1形式：nz.serv00.net:8008  v0形式：nz.serv00.net
 const NEZHA_PORT = process.env.NEZHA_PORT || '';             // v1哪吒请留空，v0 agent端口，当端口为{443,8443,2087,2083,2053,2096}时，自动开启tls
 const NEZHA_KEY = process.env.NEZHA_KEY || '';               // v1的NZ_CLIENT_SECRET或v0 agwnt密钥 
@@ -13,9 +13,9 @@ const ARGO_PORT = process.env.ARGO_PORT || 8001;             // argo固定隧道
 const TUIC_PORT = process.env.TUIC_PORT || '';               // tuic端口，支持多端口的可以填写，否则留空
 const HY2_PORT = process.env.HY2_PORT || '';                 // hy2端口，支持多端口的可以填写，否则留空
 const REALITY_PORT = process.env.REALITY_PORT || '';         // reality端口，支持多端口的可以填写，否则留空
-const CFIP = process.env.CFIP || 'cf.090227.xyz';            // 优选域名或优选IP
+const CFIP = process.env.CFIP || 'cf.877774.xyz';            // 优选域名或优选IP
 const CFPORT = process.env.CFPORT || 443;                    // 优选域名或优选IP对应端口    
-const NAME = process.env.NAME || 'Appwrite';                 // 节点名称
+const NAME = process.env.NAME || 'Appwrite-FR';                 // 节点名称
 const CHAT_ID = process.env.CHAT_ID || '';                   // Telegram chat_id  两个变量不全不推送节点到TG 
 const BOT_TOKEN = process.env.BOT_TOKEN || '';               // Telegram bot_token 两个变量不全不推送节点到TG 
 
