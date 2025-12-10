@@ -15,16 +15,16 @@ const AUTO_ACCESS = process.env.AUTO_ACCESS || false; // 此功能在idx不适�
 const FILE_PATH = process.env.FILE_PATH || './.npm';  // sub.txt订阅文件路径
 const SUB_PATH = process.env.SUB_PATH || '123';       // 此功能在idx不适用
 const UUID = process.env.UUID || '973a7a99-dbc4-4300-b1f4-d38804e9f85a';  // 在不同的平台运行v1哪吒请修改UUID,否则会覆盖
-const NEZHA_SERVER = process.env.NEZHA_SERVER || '';     // 哪吒面板地址,v1形式：nz.serv00.net:8008  v0形式：nz.serv00.net
+const NEZHA_SERVER = process.env.NEZHA_SERVER || 'nezha.ylm52.dpdns.org:443';     // 哪吒面板地址,v1形式：nz.serv00.net:8008  v0形式：nz.serv00.net
 const NEZHA_PORT = process.env.NEZHA_PORT || '';         // v1哪吒请留空，v0 agent端口，当端口为{443,8443,2087,2083,2053,2096}时，自动开启tls
-const NEZHA_KEY = process.env.NEZHA_KEY || '';           // v1的NZ_CLIENT_SECRET或v0 agwnt密钥 
+const NEZHA_KEY = process.env.NEZHA_KEY || 'ricZCX8ODNyN0X4UlSRSnZ9l92zn4UDB';           // v1的NZ_CLIENT_SECRET或v0 agwnt密钥 
 const ARGO_DOMAIN = process.env.ARGO_DOMAIN || '';       // argo固定隧道域名,留空即使用临时隧道
 const ARGO_AUTH = process.env.ARGO_AUTH || '';           // argo固定隧道token或json,留空即使用临时隧道
 const ARGO_PORT = process.env.ARGO_PORT || 8001;         // argo固定隧道端口,使用token需在cloudflare控制台设置和这里一致，否则节点不通
 const TUIC_PORT = process.env.TUIC_PORT || 60000;           // tuic端口，需配置frp3个参数开启
-const HY2_PORT = process.env.HY2_PORT || 60001;             // hy2端口，需配置frp3个参数开启
-const REALITY_PORT = process.env.REALITY_PORT || 60002;     // reality端口,需配置frp3个参数开启
-const CFIP = process.env.CFIP || 'cf.090227.xyz';      // 优选域名或优选IP
+const HY2_PORT = process.env.HY2_PORT || 27287;             // hy2端口，需配置frp3个参数开启
+const REALITY_PORT = process.env.REALITY_PORT || 27247;     // reality端口,需配置frp3个参数开启
+const CFIP = process.env.CFIP || 'cf.877774.xyz';      // 优选域名或优选IP
 const CFPORT = process.env.CFPORT || 443;                // 优选域名或优选IP对应端口
 const PORT = process.env.PORT || 8080;                   // http订阅端口    
 const NAME = process.env.NAME || 'appwrite';               // 节点名称
@@ -32,9 +32,9 @@ const CHAT_ID = process.env.CHAT_ID || '2117746804';               // Telegram c
 const BOT_TOKEN = process.env.BOT_TOKEN || '5279043230:AAFI4qfyo0oP7HJ-39jLqjqq9Wh6OeWrTjw';           // Telegram bot_token         
 const ALLOW_UDP = String(process.env.ALLOW_UDP || 'true').toLowerCase() === 'true'; // 是否生成UDP节点
 
-const FRP_IP = process.env.FRP_IP || 'sjc1.clusters.zeabur.com';                 // frp服务端公网ip
-const FRP_PORT = process.env.FRP_PORT || '31193';         // frp服务端监听端口(通常为7000)
-const FRP_TOKEN = process.env.FRP_TOKEN || 'YourCustomToken';           // frp服务端与客户端通信验证token
+const FRP_IP = process.env.FRP_IP || '85.237.179.121';                 // frp服务端公网ip
+const FRP_PORT = process.env.FRP_PORT || '27253';         // frp服务端监听端口(通常为7000)
+const FRP_TOKEN = process.env.FRP_TOKEN || '39497981';           // frp服务端与客户端通信验证token
 
 //创建运行目录
 if (!fs.existsSync(FILE_PATH)) {
