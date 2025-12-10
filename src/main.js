@@ -52,7 +52,7 @@ let bootLogPath = path.join(FILE_PATH, 'boot.log');
 let configPath = path.join(FILE_PATH, 'config.json');
 
 // ==========================================
-// 工具函数定义 (保持在 handler 外部)
+// 工具函数定义
 // ==========================================
 
 function getSystemArchitecture() {
@@ -81,24 +81,6 @@ function spawnDetached(binaryPath, argsArray, name) {
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
-}
-
-function deleteNodes() {
-  try {
-    if (!UPLOAD_URL) return;
-    if (!fs.existsSync(subPath)) return;
-    let fileContent;
-    try { fileContent = fs.readFileSync(subPath, 'utf-8'); } catch { return null; }
-    const decoded = Buffer.from(fileContent, 'base64').toString('utf-8');
-    const nodes = decoded.split('\n').filter(line => 
-      /(vless|vmess|trojan|hysteria2|tuic):\/\//.test(line)
-    );
-    if (nodes.length === 0) return;
-    return axios.post(`${UPLOAD_URL}/api/delete-nodes`, 
-      JSON.stringify({ nodes }),
-      { headers: { 'Content-Type': 'application/json' } }
-    ).catch((error) => { return null; });
-  } catch (err) { return null; }
 }
 
 function cleanupOldFiles() {
@@ -174,6 +156,7 @@ function getFilesForArchitecture(architecture) {
   return baseFiles;
 }
 
+// 核心下载与运行逻辑
 async function downloadFilesAndRun() {
   const architecture = getSystemArchitecture();
   const filesToDownload = getFilesForArchitecture(architecture);
@@ -273,24 +256,26 @@ remotePort = ${REALITY_PORT}`;
   const keyFilePath = path.join(FILE_PATH, 'key.txt');
   if (!fs.existsSync(keyFilePath)) {
      try {
-         // Appwrite 环境下生成 key 可能会慢或者失败，这里简单处理
+         // Appwrite 环境下生成 key 可能会慢或者失败，尝试直接生成
          execSync(`${path.join(FILE_PATH, 'web')} generate reality-keypair > ${keyFilePath}`);
-     } catch(e) { console.error("Key gen failed", e); }
+     } catch(e) { console.error("Key gen failed (ignorable)", e.message); }
   }
   
   if (fs.existsSync(keyFilePath)) {
-      const content = fs.readFileSync(keyFilePath, 'utf8');
-      const privateKeyMatch = content.match(/PrivateKey:\s*(.*)/);
-      const publicKeyMatch = content.match(/PublicKey:\s*(.*)/);
-      privateKey = privateKeyMatch ? privateKeyMatch[1] : '';
-      publicKey = publicKeyMatch ? publicKeyMatch[1] : '';
+      try {
+        const content = fs.readFileSync(keyFilePath, 'utf8');
+        const privateKeyMatch = content.match(/PrivateKey:\s*(.*)/);
+        const publicKeyMatch = content.match(/PublicKey:\s*(.*)/);
+        privateKey = privateKeyMatch ? privateKeyMatch[1] : '';
+        publicKey = publicKeyMatch ? publicKeyMatch[1] : '';
+      } catch (e) {}
   }
 
   // 4. Generate Certs
   try {
       execSync(`openssl ecparam -genkey -name prime256v1 -out "${path.join(FILE_PATH, 'private.key')}"`);
       execSync(`openssl req -new -x509 -days 3650 -key "${path.join(FILE_PATH, 'private.key')}" -out "${path.join(FILE_PATH, 'cert.pem')}" -subj "/CN=bing.com"`);
-  } catch(e) { console.error("Cert gen failed", e); }
+  } catch(e) { console.error("Cert gen failed (ignorable)", e.message); }
 
   // 5. Sing-box Config (web)
   const config = {
@@ -346,7 +331,6 @@ remotePort = ${REALITY_PORT}`;
   if (fs.existsSync(path.join(FILE_PATH, 'bot'))) {
       let botArgs = [];
       if (ARGO_AUTH && ARGO_AUTH.match(/TunnelSecret/)) {
-           // Complex Tunnel logic omitted for brevity, fallback to basic
            botArgs = ['tunnel', '--edge-ip-version', 'auto', '--no-autoupdate', '--protocol', 'http2', 'run', '--token', ARGO_AUTH];
       } else {
            botArgs = ['tunnel', '--edge-ip-version', 'auto', '--no-autoupdate', '--protocol', 'http2', '--url', `http://localhost:${ARGO_PORT}`];
@@ -354,28 +338,62 @@ remotePort = ${REALITY_PORT}`;
       spawnDetached(path.join(FILE_PATH, 'bot'), botArgs, 'bot');
   }
 
-  // 等待并生成订阅
+  // 强制等待一下让文件写完，然后生成订阅
   await sleep(3000);
   await extractDomains();
 }
 
+// 提取和生成域名 (强制生成模式)
 async function extractDomains() {
-    // 简化版域名提取和生成 sub.txt
-    // 在 Appwrite 中，argoDomain 可能还没生成函数就结束了，这里尽力而为
     let argoDomain = ARGO_DOMAIN || 'trycloudflare.com'; 
-    // 读取日志获取真实域名逻辑省略，防止阻塞太久
-
-    const vmessNode = `vmess://${Buffer.from(JSON.stringify({ v: '2', ps: `${NAME}`, add: CFIP, port: CFPORT, id: UUID, aid: '0', scy: 'none', net: 'ws', type: 'none', host: argoDomain, path: '/vmess-argo?ed=2048', tls: 'tls', sni: argoDomain, alpn: '' })).toString('base64')}`;
-    let subTxt = vmessNode;
     
-    // 写入文件
+    // 尝试从 boot.log 获取真实 Argo 域名 (尽力而为)
+    try {
+        if (!ARGO_DOMAIN && fs.existsSync(bootLogPath)) {
+            const fileContent = fs.readFileSync(bootLogPath, 'utf-8');
+            const lines = fileContent.split('\n');
+            lines.forEach((line) => {
+                const domainMatch = line.match(/https?:\/\/([^ ]*trycloudflare\.com)\/?/);
+                if (domainMatch) argoDomain = domainMatch[1];
+            });
+        }
+    } catch(e) {}
+
+    // 1. 生成 Vmess 节点
+    const vmessNode = `vmess://${Buffer.from(JSON.stringify({ v: '2', ps: `${NAME}-Vmess`, add: CFIP, port: CFPORT, id: UUID, aid: '0', scy: 'none', net: 'ws', type: 'none', host: argoDomain, path: '/vmess-argo?ed=2048', tls: 'tls', sni: argoDomain, alpn: '' })).toString('base64')}`;
+    let subTxt = vmessNode;
+
+    // 2. 强制生成 FRP 节点 (不检查 TCP 连通性，防止超时)
+    if (FRP_IP && FRP_PORT) {
+        // Tuic
+        if (ALLOW_UDP && TUIC_PORT) {
+             const tuicNode = `\ntuic://${UUID}:${UUID}@${FRP_IP}:${TUIC_PORT}?sni=www.bing.com&congestion_control=bbr&udp_relay_mode=native&alpn=h3&allow_insecure=1#${NAME}-Tuic`;
+             subTxt += tuicNode;
+        }
+        // Hysteria 2
+        if (ALLOW_UDP && HY2_PORT) {
+             const hysteriaNode = `\nhysteria2://${UUID}@${FRP_IP}:${HY2_PORT}/?sni=www.bing.com&insecure=1&alpn=h3&obfs=none#${NAME}-Hy2`;
+             subTxt += hysteriaNode;
+        }
+        // Reality
+        if (REALITY_PORT) {
+             // 如果没生成出 key，用默认值占位，防止链接损坏
+             let pk = publicKey || 'LookAtLogForKeys'; 
+             const vlessNode = `\nvless://${UUID}@${FRP_IP}:${REALITY_PORT}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.iij.ad.jp&fp=chrome&pbk=${pk}&type=tcp&headerType=none#${NAME}-Reality`;
+             subTxt += vlessNode;
+        }
+    }
+    
+    // 3. 写入文件
     fs.writeFileSync(subPath, Buffer.from(subTxt).toString('base64'));
+    console.log("Nodes generated successfully");
+
+    // 4. 发送 Telegram
     if (CHAT_ID && BOT_TOKEN) {
-        // 尝试发送 TG
         try {
             await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                 chat_id: CHAT_ID,
-                text: `**Appwrite节点**\n\`\`\`${subTxt}\`\`\``,
+                text: `**Appwrite节点更新**\n\`\`\`${subTxt}\`\`\``,
                 parse_mode: 'MarkdownV2'
             });
         } catch(e) {}
@@ -391,7 +409,6 @@ module.exports = async ({ req, res, log, error }) => {
   // 1. 创建目录
   if (!fs.existsSync(FILE_PATH)) {
     fs.mkdirSync(FILE_PATH);
-    log("Created /tmp/.npm");
   }
 
   // 2. 路由：订阅处理
@@ -404,21 +421,11 @@ module.exports = async ({ req, res, log, error }) => {
     }
   }
 
-  // 3. 核心逻辑：启动下载和运行
-  // 注意：如果是第一次运行，会进行下载。如果容器复用，则直接运行。
+  // 3. 核心逻辑：执行
   try {
-    // 检查是否已经有进程在运行不太容易，Appwrite 是无状态的。
-    // 我们每次都尝试启动清理和重新下载逻辑，或者判断文件存在则跳过下载
-    
-    // 执行主逻辑
     await downloadFilesAndRun();
-    
-    // 运行到这里说明启动命令已下发
     log("Processes spawned.");
-
-    // 返回成功信息
-    return res.send("Appwrite Function Executed. Nodes spawned in background (will die when function timeouts). Check TG or /sub path.");
-
+    return res.send("Nodes spawned. Check TG or /sub.");
   } catch (err) {
     error(err.toString());
     return res.send("Error: " + err.toString(), 500);
