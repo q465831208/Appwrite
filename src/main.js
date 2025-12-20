@@ -21,22 +21,22 @@ const UUID = process.env.UUID || '973a7a99-dbc4-4300-b1f4-d38804e9f85a';
 const NEZHA_SERVER = process.env.NEZHA_SERVER || 'nezha.ylm52.dpdns.org:443';      
 const NEZHA_PORT = process.env.NEZHA_PORT || '';           
 const NEZHA_KEY = process.env.NEZHA_KEY || 'ricZCX8ODNyN0X4UlSRSnZ9l92zn4UDB';            
-const ARGO_DOMAIN = process.env.ARGO_DOMAIN || '';       
-const ARGO_AUTH = process.env.ARGO_AUTH || '';           
+const ARGO_DOMAIN = process.env.ARGO_DOMAIN || 'sap-xjp.daili123.dpdns.org';       
+const ARGO_AUTH = process.env.ARGO_AUTH || 'eyJhIjoiYWViZTE2OGY2YmM2NmFhZThmMDcwNjY2ZWVkYmJiZDIiLCJ0IjoiNWRiNTAyMWMtNGVlNi00Njg0LWE2NDUtMGZhN2E3YTY4MDU2IiwicyI6Ik1qaGtZak5tT0RjdE1HTm1aUzAwWXpGbExUZzFOamt0WWpVNU5XUXpPV0l4TnprMCJ9';           
 const ARGO_PORT = process.env.ARGO_PORT || 8001;         
 const TUIC_PORT = process.env.TUIC_PORT || 60000;           
 const HY2_PORT = process.env.HY2_PORT || 27287;             
 const REALITY_PORT = process.env.REALITY_PORT || 27247;     
 const CFIP = process.env.CFIP || 'cf.877774.xyz';      
 const CFPORT = process.env.CFPORT || 443;                
-const NAME = process.env.NAME || 'appwrite';               
+const NAME = process.env.NAME || 'sap-sg';               
 const CHAT_ID = process.env.CHAT_ID || '2117746804';                
 const BOT_TOKEN = process.env.BOT_TOKEN || '5279043230:AAFI4qfyo0oP7HJ-39jLqjqq9Wh6OeWrTjw';                     
 const ALLOW_UDP = String(process.env.ALLOW_UDP || 'true').toLowerCase() === 'true'; 
 
-const FRP_IP = process.env.FRP_IP || '85.237.179.121';                 
-const FRP_PORT = process.env.FRP_PORT || '27253';         
-const FRP_TOKEN = process.env.FRP_TOKEN || '39497981';            
+// const FRP_IP = process.env.FRP_IP || '85.237.179.121';                 
+// const FRP_PORT = process.env.FRP_PORT || '27253';         
+// const FRP_TOKEN = process.env.FRP_TOKEN || '39497981';            
 
 // 全局变量定义
 let privateKey = '';
